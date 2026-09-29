@@ -5,7 +5,10 @@ import '../betting/betting_screen.dart';
 import '../instruction/how_to_play_screen.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+  final String username;
+  final int balance;
+
+  const MainScreen({super.key, required this.username, required this.balance});
 
   static const _green = Color(0xFF176B3A);
   static const _darkGreen = Color(0xFF0B4226);
@@ -47,7 +50,7 @@ class MainScreen extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const _BalanceBadge(balance: 100),
+                          _BalanceBadge(balance: balance),
                           const _GameTitle(),
                           _RaceHero(height: heroHeight),
                           ConstrainedBox(
@@ -64,7 +67,10 @@ class MainScreen extends StatelessWidget {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const BettingScreen(),
+                                        builder: (_) => BettingScreen(
+                                          username: username,
+                                          balance: balance,
+                                        ),
                                       ),
                                     );
                                   },

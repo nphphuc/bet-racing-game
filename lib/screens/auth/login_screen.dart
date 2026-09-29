@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../home/main_screen.dart';
 import '../../services/interfaces/i_login.dart';
 import '../../services/login_impl.dart';
+import '../../services/balance_repository.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-//tai khoan mk trong assétt/data/user
+  //tai khoan mk trong assétt/data/user
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -32,7 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (username.trim().isEmpty || password.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tên tài khoản và mật khẩu!')),
+        const SnackBar(
+          content: Text('Vui lòng nhập tên tài khoản và mật khẩu!'),
+        ),
       );
       return;
     }
@@ -41,18 +45,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
     bool isSuccess = await _loginService.login(username, password);
 
-    setState(() => _isLoading = false);
-
     if (!mounted) return;
 
     if (isSuccess) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-      );
+      try {
+        final balance = await BalanceRepository().load(username);
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                MainScreen(username: username.trim(), balance: balance),
+          ),
+        );
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Không thể tải số dư. Vui lòng thử lại!'),
+          ),
+        );
+      }
     } else {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tài khoản hoặc mật khẩu không chính xác!')),
+        const SnackBar(
+          content: Text('Tài khoản hoặc mật khẩu không chính xác!'),
+        ),
       );
     }
   }
@@ -66,10 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
             //nghiem tuc thi them 1 vao
             image: AssetImage('assets/image/login_uma.jpg'),
             fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              Colors.black54,
-              BlendMode.darken,
-            ),
+            colorFilter: ColorFilter.mode(Colors.black54, BlendMode.darken),
           ),
         ),
         child: SafeArea(
@@ -86,11 +104,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       border: Border.all(color: Colors.amber, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.amber.withOpacity(0.3),
+                          color: Colors.amber.withValues(alpha: 0.3),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),
@@ -118,9 +136,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       hintText: "Tên tài khoản / Email",
                       hintStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(Icons.person_outline, color: Colors.amber),
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: Colors.amber,
+                      ),
                       filled: true,
-                      fillColor: Colors.black.withOpacity(0.65),
+                      fillColor: Colors.black.withValues(alpha: 0.65),
                       contentPadding: const EdgeInsets.symmetric(vertical: 16),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -128,7 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: Colors.amber, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: Colors.amber,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -142,16 +166,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       hintText: "Mật khẩu",
                       hintStyle: const TextStyle(color: Colors.white54),
-                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.amber),
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        color: Colors.amber,
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          _isObscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
                           color: Colors.white54,
                         ),
-                        onPressed: () => setState(() => _isObscure = !_isObscure),
+                        onPressed: () =>
+                            setState(() => _isObscure = !_isObscure),
                       ),
                       filled: true,
-                      fillColor: Colors.black.withOpacity(0.65),
+                      fillColor: Colors.black.withValues(alpha: 0.65),
                       contentPadding: const EdgeInsets.symmetric(vertical: 16),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -159,7 +189,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: Colors.amber, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: Colors.amber,
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -181,18 +214,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading ? null : _handleLogin,
                       child: _isLoading
                           ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.5),
-                      )
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.black,
+                                strokeWidth: 2.5,
+                              ),
+                            )
                           : const Text(
-                        "ĐĂNG NHẬP",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
+                              "ĐĂNG NHẬP",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -207,7 +243,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white,
                           fontSize: 13,
                           shadows: [
-                            Shadow(offset: Offset(1, 1), blurRadius: 3, color: Colors.black),
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 3,
+                              color: Colors.black,
+                            ),
                           ],
                         ),
                       ),
@@ -220,7 +260,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                             shadows: [
-                              Shadow(offset: Offset(1, 1), blurRadius: 3, color: Colors.black),
+                              Shadow(
+                                offset: Offset(1, 1),
+                                blurRadius: 3,
+                                color: Colors.black,
+                              ),
                             ],
                           ),
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../models/racer_model.dart';
 import '../../models/bet_model.dart';
 import '../../services/race_engine_impl.dart';
@@ -9,6 +10,7 @@ class RaceScreen extends StatefulWidget {
   final int baseDurationSeconds;
   final List<BetItem> bets;
   final int currentBalance;
+  final String username;
 
   const RaceScreen({
     super.key,
@@ -16,6 +18,7 @@ class RaceScreen extends StatefulWidget {
     required this.baseDurationSeconds,
     required this.bets,
     required this.currentBalance,
+    required this.username,
   });
 
   @override
@@ -55,7 +58,13 @@ class _RaceScreenState extends State<RaceScreen> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => ResultScreen(result: result)),
+          MaterialPageRoute(
+            builder: (_) => ResultScreen(
+              result: result,
+              racers: widget.racers,
+              username: widget.username,
+            ),
+          ),
         );
       });
     }
@@ -100,7 +109,7 @@ class _RaceScreenState extends State<RaceScreen> {
               onPressed: _isRacing ? null : _startRace,
               child: const Text("START RUN"),
             ),
-          )
+          ),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import '../models/bet_model.dart';
 import '../models/race_result_model.dart';
 import 'interfaces/i_race_engine.dart';
@@ -42,6 +43,7 @@ class RaceEngineImpl implements IRaceEngine {
       totalBet: totalBet,
       totalPayout: payout,
       newBalance: newBalance,
+      bets: bets,
     );
   }
 }
